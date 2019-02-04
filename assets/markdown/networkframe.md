@@ -3,15 +3,18 @@ A `<Frame>` that displays topological data, which differs from other forms of da
 Nodes are automatically generated from edge references to source or target that do not exist, these nodes have `createdByFrame: true` if you want to treat them differently. Nodes are also decorated with a `degree` attribute, which is simple degree centrality (number of connections) if you want to use that.
 
 ```jsx
-import { NetworkFrame } from 'semiotic'
+import { NetworkFrame } from "semiotic";
 
 <NetworkFrame
-   nodes={[{name: "Susie"}, {name: "Shirley"}]}
-   edges={[{source: "Susie", target: "Xianlin"},{source: "Shirley", target: "Susie"}]}
-   nodeStyle={{ fill: "blue" }}
-   edgeStyle={{ stroke: "red" }}
-   nodeIDAccessor={"name"}
-/>
+  nodes={[{ name: "Susie" }, { name: "Shirley" }]}
+  edges={[
+    { source: "Susie", target: "Xianlin" },
+    { source: "Shirley", target: "Susie" }
+  ]}
+  nodeStyle={{ fill: "blue" }}
+  edgeStyle={{ stroke: "red" }}
+  nodeIDAccessor={"name"}
+/>;
 ```
 
 # &lt;API Reference>
@@ -84,6 +87,47 @@ _This will also support a "per-tick" function once the specifications can be fig
 <!-- Object option -->
 <NetworkFrame networkType={{ type: "wordcloud" , rotate: d => d.topic_score < 1, fontSize: 36, fontWeight: 900 }} />
 ```
+
+- Custom Settings for NetworkFrame Network Types
+
+As with other data visualization types in the various frames, [[NetworkFrame]] will let you send the following strings to networkType: `"wordcloud"`, `"force"`, `"motifs"`. If you want more control over the summary data visualization being rendered, each of these types have additional settings you can adjust based on your use case and which typically expose settings associated with the data transformation method associated with the summary type. To do this, you need to send an object instead of a string, and that object should have a “type” attribute set to the string, so this uses contouring with the default method:
+
+```html
+<NetworkFrame networkType={"motifs"} />
+```
+
+...while this sends custom settings to adjust the number of iterations for the `d3-force` `forceSimulation` function:
+
+```html
+<NetworkFrame networkType={{ type: "motifs", iterations: 1000 }} />
+```
+
+## Custom Settings by Type
+
+### Shared
+
+- `iterations`: The number of _ticks_ that the simulation will run.
+
+### Force-Directed
+
+- `edgeStrength`: The modifier applied the the value from the edgeWeightAccessor value of the edge. Defaults to `0.1`.
+
+### Motifs
+
+- `edgeStrength`: The modifier applied the the value from the edgeWeightAccessor value of the edge. Defaults to `0.1`.
+- `multi`: Whether this is a multi-graph (multiple edges from the same source to the same target). This is important because component detection relies on whether the graph is a multigraph and I can't automatically detect that so you need to declare it when it is.
+
+### Word Cloud
+
+- `fontSize`: The base font-size of the words. Defaults to `18`.
+- `fontWeight`: The font-weight of the words. Defaults to `300`.
+- `rotate`: A function that takes a node and returns a boolean that determines whether or not the word is shown vertically (rotated 90 degrees). By default all words are shown horizontally.
+
+### Sankey
+
+- `orient`: One of `["center", "left", "right", "justify"]` determining the base sankey layout. Defaults to `"center"`
+- `nodePadding`: Pixel padding between nodes. Defaults to `8`.
+- `nodeWidth`: Pixel width of nodes. Defaults to `24`.
 
 ### title: {_string_ | _JSX_}
 
@@ -199,6 +243,17 @@ By default nodes are represented as SVG `<circle>` elements with `r=5`. Use _nod
 
 A function taking the node datapoint and returning SVG JSX representation of the node.
 
+- d : the data for the node, which includes its x/y data
+- i : the array position of the node data in the nodes array
+- renderKeyFn : same as customEdgeType
+- styleFn : same as customEdgeType
+- classFn : same as customEdgeType
+- renderMode : same as customEdgeType
+- key : same as customEdgeType but “node-\${i}”
+- className : same as customEdgeType but with “node”
+- transform : same as customEdgeType
+- baseMarkProps : same as customEdgeType
+
 ```jsx
 <NetworkFrame
   customNodeIcon={d => (
@@ -285,14 +340,11 @@ If edgeRenderMode is specified, determines the renderMode of the underlying Mark
 
 ### edgeType { _string_ | _object_ | _function_ }
 
-A string (One of `'none','linearc','ribbon','arrowhead','halfarrow','nail','comet','taffy'`) or an object with `{ type }` equal to one of these strings (with additional options depending on which edge type is selected) or a function that takes an edge datapoint and returns SVG JSX representation of the connection between two edges.
+A string (One of `'none', 'curve', 'linearc','ribbon','arrowhead','halfarrow','nail','comet','taffy'`) or an object with `{ type }` equal to one of these strings (with additional options depending on which edge type is selected) or a function that takes an edge datapoint and returns SVG JSX representation of the connection between two edges.
 
 ```jsx
 <!-- String option -->
 <NetworkFrame edgeType="halfarrow" />
-
-<!-- Object option -->
-<NetworkFrame edgeType={{ type: "taffy", centerWidth: 1 }} />
 
 <!-- Function option -->
 <NetworkFrame edgeType={d => <line
@@ -303,6 +355,21 @@ A string (One of `'none','linearc','ribbon','arrowhead','halfarrow','nail','come
     style={{ stroke: "red" }}
 />} />
 ```
+
+### customEdgeIcon { _function_ }
+
+A function taking the edge datapoint and returning SVG JSX representation of the edge.
+
+- d: The data element of the edge, which has props like source and target that give you x/y coordinates to draw your own edge
+- i: the index position of the edge in the data array
+- renderKeyFn: a function for determining the unique key for the rendered element (passed through from your renderKey function in the Frame)
+- styleFn: a function for determining the style object given `d` (passed through from the Frame from your edgeStyle)
+- classFn: a function for determining the className given `d` (passed through from the Frame from your edgeClass)
+- renderMode: a function for determining the renderMode given `d` (passed through from the Frame from your edgeRenderMode)
+  key - a string that is generated from the renderKeyFn or `edge-${index value of this edge}`
+- className: The results of the class function + “ edge”
+- transform: Some edges, like chord edges, need to be translated (centered, typically) and the `translate(${d.x},${d.y})` is sent in this form
+- baseMarkProps: an object from the Frame’s baseMarkProps property that is meant to be spread to all generated marks, like this edge
 
 ## Annotation and Decoration
 
