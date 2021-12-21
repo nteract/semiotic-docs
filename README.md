@@ -1,5 +1,9 @@
 # Semiotic Docs
 
+🌆  **DEPRECATED AND ARCHIVED: The Semiotic docs have been moved to the Semiotic repo. [See PR with the change for more info.](https://github.com/nteract/semiotic/pull/578) Thank you to everyone, especially Susie Lu, for their work in this repo.** 🌆
+
+---
+
 **[Semiotic](https://github.com/nteract/semiotic) is a data visualization framework for React.**
 
 It provides three types of frames XYFrame, OrdinalFrame, NetworkFrame, to deploy a wide variety of charts.
